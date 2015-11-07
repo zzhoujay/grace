@@ -6,8 +6,150 @@
     <script src="js/jquery-2.1.4.js"></script>
     <script src="js/three.js"></script>
     <script src="js/Tween.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #canvas {
+            height: 900px;
+            width: 100%;
+        }
+    </style>
+
+
+    <script>
+
+        var renderer;
+        var width, height;
+        var camera;
+        var scene;
+        var mouseX, mouseY;
+        var delta = 1, clock = new THREE.Clock();
+
+        function initThree() {
+            var content = document.getElementById("canvas");
+            width = content.clientWidth;
+            height = content.clientHeight;
+            renderer = new THREE.WebGLRenderer({
+                antialias: true
+            });
+            renderer.setSize(width, height);
+            content.appendChild(renderer.domElement);
+            renderer.setClearColor(0x000000, 1.0);
+            renderer.shadowMapEnabled = true;
+        }
+
+        function initCamera() {
+            camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
+            camera.position.set(0, 600, 400);
+            console.log(camera.position);
+            camera.up.set(0, 1, 0);
+            camera.lookAt({x: 0, y: 0, z: 0});
+        }
+
+        function initScene() {
+            scene = new THREE.Scene();
+        }
+
+        var sport = new THREE.SpotLight(0xffffff);
+
+        function initLight() {
+            var amb = new THREE.AmbientLight(0x222222);
+            var point = new THREE.PointLight(0xffffff);
+            sport.position.set(200, 200, 200);
+            sport.castShadow = true;
+            point.position.set(0, 0, -100);
+
+            scene.add(amb);
+            scene.add(sport);
+            scene.add(point);
+        }
+
+        function initObject() {
+
+            var geom = new THREE.Geometry();
+            var material = new THREE.ParticleBasicMaterial({size: 4, vertexColors: true, color: 0xffffff});
+
+            for (var i = 0; i < 2000; i++) {
+                var p = new THREE.Vector3(Math.random() * 1000 - 500, Math.random() * 1000 - 500, Math.random() * 1000 - 500);
+                geom.vertices.push(p);
+                var color = new THREE.Color(Math.random() * 0xffffff);
+                geom.colors.push(color);
+            }
+
+            scene.add(new THREE.ParticleSystem(geom, material));
+
+            var plane = new THREE.Mesh(new THREE.PlaneGeometry(200, 800), new THREE.MeshLambertMaterial({
+                color: 0x444444,
+                side: THREE.DoubleSide
+            }));
+            plane.position.set(0, -200, -200);
+            plane.rotation.set(-90, 0, 0);
+            plane.receiveShadow = true;
+            scene.add(plane);
+            sport.target = plane;
+
+            var ball = new THREE.Mesh(new THREE.SphereGeometry(20, 20, 20), new THREE.MeshLambertMaterial({color: Math.random() * 0xffffff}));
+            ball.position.set(0, -150, -200);
+            ball.castShadow = true;
+            scene.add(ball);
+
+        }
+
+        function render() {
+            renderer.clear();
+
+            camera.position.x += ( mouseX - camera.position.x || 0 ) * 0.05;
+            camera.position.y += ( mouseY - camera.position.y || 0 ) * 0.05;
+
+            camera.lookAt({x: 0, y: 0, z: 0});
+
+            TWEEN.update();
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(render);
+        }
+
+        function onResize() {
+            var content = document.getElementById("canvas");
+            width = content.clientWidth;
+            height = content.clientHeight;
+
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(width, height);
+        }
+
+        function onMouesMove(event) {
+            mouseX = ( event.clientX - width / 2 );
+            mouseY = ( height / 2 - event.clientY );
+        }
+
+        function init() {
+
+            initThree();
+            initCamera();
+            initScene();
+            initLight();
+            initObject();
+
+            window.addEventListener("resize", onResize);
+            document.addEventListener("mousemove", onMouesMove, false);
+
+            render();
+        }
+
+        window.onload = init;
+
+
+    </script>
+
 </head>
 <body>
-<h1>Hello zzhoujay</h1>
+<div id="canvas"></div>
 </body>
 </html>
